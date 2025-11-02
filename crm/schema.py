@@ -242,6 +242,7 @@ class Mutation(graphene.ObjectType):
     bulk_create_customers = BulkCreateCustomers.Field()
     create_product = CreateProduct.Field()
     create_order = CreateOrder.Field()
+    update_low_stock_products = UpdateLowStockProducts.Field()
 
 # -----------------------
 # Object Types (Relay-compatible)
@@ -308,3 +309,32 @@ class Query(graphene.ObjectType):
             except Exception:
                 pass
         return qs
+    hello = graphene.String(default_value="Hello from CRM GraphQL!")
+    
+class ProductType(DjangoObjectType):
+    class Meta:
+        model = Product
+        fields = ("id", "name", "stock")
+
+# Define the mutation
+class UpdateLowStockProducts(graphene.Mutation):
+    message = graphene.String()
+    updated_products = graphene.List(ProductType)
+
+    def mutate(self, info):
+        low_stock_products = Product.objects.filter(stock__lt=10)
+        updated = []
+
+        for product in low_stock_products:
+            product.stock += 10  # Simulate restocking
+            product.save()
+            updated.append(product)
+
+        return UpdateLowStockProducts(
+            message=f"{len(updated)} products restocked successfully!",
+            updated_products=updated
+        )
+
+# Register the mutation in the schema
+
+schema = graphene.Schema(query=Query, mutation=Mutation)

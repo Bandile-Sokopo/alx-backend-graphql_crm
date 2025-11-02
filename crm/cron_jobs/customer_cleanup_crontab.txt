@@ -1,0 +1,2 @@
+0 2 * * 0 /path/to/project/crm/cron_jobs/clean_inactive_customers.sh
+0 8 * * * /path/to/project/crm/cron_jobs/send_order_reminders.py
